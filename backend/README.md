@@ -1,6 +1,6 @@
 ⚙️ Backend (RAG & FastAPI)
 
-복지 정책 원문(PDF)을 벡터 데이터베이스에 저장하고, 확장 프로그램의 요청에 따라 관련 정책을 찾아 Gemini를 통해 답변을 생성하는 API 서버입니다.
+복지 정책 원문(PDF, [www.gg.go.kr](https://www.gg.go.kr/bbs/board.do?bsIdx=792&menuId=3298#page=1))을 벡터 데이터베이스에 저장하고, 확장 프로그램의 요청에 따라 관련 정책을 찾아 Gemini를 통해 답변을 생성하는 API 서버입니다.
 
 🛠️ 기술 스택
 
@@ -11,6 +11,9 @@ Vector DB: ChromaDB
 LLM & Embedding: Upstage (Document Parse, Solar Embedding), Google Gemini API
 
 🚀 로컬 실행 방법
+
+0. 원본 데이터(raw data)
+필요할 경우 PDF 데이터는 [구글 드라이브 링크](https://drive.google.com/drive/folders/1eZRKFwTRSKf1qaMQP0o2aYyMb_kIjzi3?usp=drive_link)에서 다운로드하여 backend/data/raw/에 넣어주세요
 
 1. 가상환경 설정 및 패키지 설치
 

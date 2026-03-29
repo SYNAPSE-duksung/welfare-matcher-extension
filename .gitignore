@@ -1,6 +1,12 @@
 # Created by https://www.toptal.com/developers/gitignore/api/python,venv,windows,visualstudiocode,macos,linux
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,venv,windows,visualstudiocode,macos,linux
 
+### 개발 과정에서 추가된 git ignore (custom 부분) ###
+backend/data/raw/*
+!backend/data/raw/2026_Gyeonggi-do.pdf
+
+###################################################
+
 ### Linux ###
 *~
 
