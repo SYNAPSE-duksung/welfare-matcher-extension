@@ -3,10 +3,10 @@
 > **정부24 사이트에서 경기도 복지 정책을 매칭해주는 브라우저 확장 프로그램**
 > 
 
-RAG 활용 자료: https://www.gg.go.kr/bbs/board.do?bsIdx=792&menuId=3298#page=1
+RAG 활용 자료: https://www.gg.go.kr/bbs/board.do?bsIdx=792&menuId=3298#page=1 <br>
 브라우저 확장 프로그램: https://chromewebstore.google.com/category/extensions?hl=ko
 
-- 시퀀스 다이어그램 mermaid 원본 (수정을 위한 부분)
+- **시퀀스 다이어그램**
     
     ```mermaid
     sequenceDiagram

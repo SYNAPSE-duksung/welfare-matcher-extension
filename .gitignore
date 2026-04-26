@@ -5,6 +5,8 @@
 backend/data/raw/*
 !backend/data/raw/2026_Gyeonggi-do.pdf
 
+backend/vector_db/*
+
 ###################################################
 
 ### Linux ###

@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 
 from langchain_core.documents import Document
 from langchain_text_splitters import MarkdownTextSplitter
-# from langchain_chroma import Chroma
+from langchain_chroma import Chroma
 from langchain_upstage import UpstageEmbeddings
 
 
@@ -48,6 +48,7 @@ def load_pdf_to_doc_by_python(file_path):
 
     return langchain_docs
 
+# 2. Chunking 실시
 def split_documents(docs):
     print("텍스트 청킹 시작...")
 
@@ -73,7 +74,32 @@ def split_documents(docs):
         
     return chunked_docs
 
+# 3. Chunking text -> Chroma DB
+def save_to_chroma_db(chunked_docs, db_path="vector_db"):
+    if not chunked_docs:
+        print("텍스트 청크가 존재하지 않음")
+        return
+    
+    print("벡터화(Embedding) 및 Chroma DB 저장 시작 (경로: {db_path})")
+
+    embeddings = UpstageEmbeddings(model="solar-embedding-1-large")
+
+    vector_db=Chroma.from_documents(
+        documents=chunked_docs,
+        embedding=embeddings,
+        persist_directory=db_path
+    )
+
+    print(f"모든 데이터가 '{db_path}' 폴더에 저장되었습니다")
+
+    return vector_db
+
+
 if __name__ == "__main__":
     file_path = "data/test_data/test3.pdf"
+
+    db_directory = "vector_db"
+    
     file_docs = load_pdf_to_doc_by_python(file_path)
-    split_documents(file_docs)
+    chunks=split_documents(file_docs)
+    save_to_chroma_db(chunks, db_directory)
