@@ -1,0 +1,38 @@
+{
+  "manifest_version": 3,
+  "name": "LMS Reminder",
+  "version": "1.0",
+  "description": "Press Ctrl+Shift+Y to capture and extract assignment info to Google Calendar.",
+  "permissions": [
+    "activeTab",
+    "tabs",
+    "storage",
+    "identity",
+    "notifications"
+  ],
+  "host_permissions": [
+    "https://www.googleapis.com/*",
+    "https://generativelanguage.googleapis.com/*"
+  ],
+  "oauth2": {
+    "client_id": "Google Cloud에서 발급받은 OAUTH client id 기입",
+    "scopes": [
+      "https://www.googleapis.com/auth/calendar.events"
+    ]
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "icon.png"
+  },
+  "commands": {
+    "capture-visible-tab": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Y"
+      },
+      "description": "Capture visible tab and extract assignment info"
+    }
+  }
+}
