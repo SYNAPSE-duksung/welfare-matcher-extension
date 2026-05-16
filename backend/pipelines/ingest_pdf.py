@@ -1,4 +1,4 @@
-# ingest_pdf.py
+# ingest_pdf.py - pwd) welfare-matcher-extension/backend에서 실행
 # raw data(원본 pdf)로부터 벡터 데이터베이스를 생성하는 로직 코드
 
 # 1. Upstage API를 사용하여 PDF를 읽고 마크다운 형식의 Document 객체 리스트로 반환
@@ -12,7 +12,8 @@ from dotenv import load_dotenv
 from langchain_core.documents import Document
 from langchain_text_splitters import MarkdownTextSplitter
 from langchain_chroma import Chroma
-from langchain_upstage import UpstageEmbeddings
+# from langchain_upstage import UpstageEmbeddings
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
 
 load_dotenv()
@@ -74,20 +75,47 @@ def split_documents(docs):
         
     return chunked_docs
 
-# 3. Chunking text -> Chroma DB
+# 3. Chunking text -> Chroma DB: 구글 임베딩
+
+## 3-1. Google Generative AI Embeddings의 embed_documents 버그를 우회하고자 custom 실시
+##      embed_query를 사용해서 각 문서를 개별적으로 embedding
+class CustomGoogleEmbeddings(GoogleGenerativeAIEmbeddings):
+    def embed_documents(self, texts):
+        print(f"개별 embedding 처리 중... ({len(texts)}개 문서)")
+        embeddings = []
+        for i, text in enumerate(texts):
+            try:
+                # embed_query를 사용하여 개별 처리
+                embedding = self.embed_query(text)
+                embeddings.append(embedding)
+                if (i + 1) % max(1, len(texts) // 3) == 0 or i == len(texts) - 1:
+                    print(f"[{i+1}/{len(texts)}] 완료")
+            except Exception as e:
+                print(f"문서 {i} embedding 실패: {e}")
+                raise
+        
+        print(f"모든 embedding 완료 ({len(embeddings)}개)")
+        return embeddings
+
+## 3-2. Chroma DB에 저장 - 커스텀 embedding 사용
 def save_to_chroma_db(chunked_docs, db_path="vector_db"):
     if not chunked_docs:
         print("텍스트 청크가 존재하지 않음")
         return
     
-    print("벡터화(Embedding) 및 Chroma DB 저장 시작 (경로: {db_path})")
+    print(f"벡터화(Embedding) 및 Chroma DB 저장 시작 (경로: {db_path})")
 
-    embeddings = UpstageEmbeddings(model="solar-embedding-1-large")
+    # embeddings = UpstageEmbeddings(model="solar-embedding-1-large")
+    embeddings = CustomGoogleEmbeddings(
+        model="gemini-embedding-2",
+        google_api_key=os.getenv("GEMINI_API_KEY")
+    )
 
-    vector_db=Chroma.from_documents(
+    vector_db = Chroma.from_documents(
         documents=chunked_docs,
         embedding=embeddings,
-        persist_directory=db_path
+        persist_directory=db_path,
+        collection_name="documents"
     )
 
     print(f"모든 데이터가 '{db_path}' 폴더에 저장되었습니다")
