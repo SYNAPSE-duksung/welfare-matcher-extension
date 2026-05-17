@@ -19,13 +19,6 @@ chrome.commands.onCommand.addListener(async (command) => {
         return;
       }
 
-      // Gemini API 키 확인
-      const geminiKey = await getStorageKey("geminiKey");
-      if (!geminiKey) {
-        notify("Gemini API 키를 먼저 설정해주세요");
-        return;
-      }
-
       notify("스크린샷 캡처 중...");
 
       // 현재 활성 탭 캡처
@@ -39,8 +32,8 @@ chrome.commands.onCommand.addListener(async (command) => {
         notify("과제 정보 추출 중...");
 
         try {
-          // Gemini API로 이미지 분석
-          const assignmentInfo = await analyzeImageWithGemini(dataUrl, geminiKey);
+          // MediaPipe로 이미지 분석
+          const assignmentInfo = await analyzeImageWithMediaPipe(dataUrl);
           
           if (!assignmentInfo) {
             notify("과제 정보를 추출하지 못했습니다");
@@ -73,138 +66,30 @@ chrome.commands.onCommand.addListener(async (command) => {
   }
 });
 
-// Storage에서 키 가져오기
-function getStorageKey(keyName) {
-  return new Promise((resolve) => {
-    chrome.storage.local.get(keyName, (result) => {
-      resolve(result[keyName]);
-    });
+// MediaPipe로 이미지 분석
+async function analyzeImageWithMediaPipe(dataUrl) {
+  // 1. offscreen 문서 생성 (없으면)
+  await ensureOffscreenDocument();
+
+  // 2. 메시지 전송 후 응답 대기
+  return chrome.runtime.sendMessage({
+    type: "RUN_INFERENCE",
+    dataUrl: dataUrl
   });
 }
 
-// Gemini API로 이미지 분석
-async function analyzeImageWithGemini(dataUrl, apiKey, retryCount = 0) {
-  const base64Data = dataUrl.split(',')[1];
-  const MAX_RETRIES = 3;
+// Offscreen 문서 생성
+async function ensureOffscreenDocument(){
+  const existing = await chrome.runtime.getContexts({
+    contextTypes: ["OFFSCREEN_DOCUMENT"]
+  });
+  if (existing.length > 0) return;
 
-  const prompt = `다음 이미지는 대학교 LMS(학습관리시스템) 화면입니다. 
-이미지에서 다음 정보를 정확히 추출해주세요:
-1. 과목명 (subject) - 예: "게임프로그래밍실습[02]"
-2. 과제명/강의명 (title) - 예: "11월11일 실습 제출" 또는 "4장, 순서회로 과제"
-3. 과제 타입 (type) - "assignment"(과제/퀴즈) 또는 "lecture"(녹강/동영상)
-4. 종료 기한 (deadline) - "YYYY-MM-DD HH:MM" 형식
-5. 시작 기한 (startDate) - 녹강인 경우 "학습 인정 기간" 시작일, "YYYY-MM-DD HH:MM" 형식. 과제인 경우 null
-
-이미지에서 보이는 정보:
-- 제목, 과목명에서 과목명과 과제명 추출
-- "학습 인정 기간"이 있으면 type은 "lecture", 시작일과 종료일 모두 추출
-- "제출 마감", "종료일시" 등이 있으면 type은 "assignment", 종료일만 추출
-
-반드시 아래 JSON 형식으로만 답변하고, 다른 설명은 포함하지 마세요:
-{
-  "subject": "과목명",
-  "title": "과제명",
-  "type": "assignment",
-  "deadline": "2025-11-11 20:00",
-  "startDate": null
-}
-
-또는
-
-{
-  "subject": "과목명",
-  "title": "강의명",
-  "type": "lecture",
-  "deadline": "2025-11-03 23:59",
-  "startDate": "2025-10-27 00:00"
-}`;
-
-  try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{
-            parts: [
-              { text: prompt },
-              {
-                inline_data: {
-                  mime_type: "image/png",
-                  data: base64Data
-                }
-              }
-            ]
-          }]
-        })
-      }
-    );
-
-    const data = await response.json();
-    
-    // 에러 처리 (재시도 가능한 에러들)
-    if (data.error) {
-      const retryableErrors = [
-        "RESOURCE_EXHAUSTED",
-        "UNAVAILABLE", 
-        "INTERNAL",
-        "The model is overloaded"
-      ];
-      
-      const shouldRetry = retryableErrors.some(err => 
-        data.error.status === err || 
-        (data.error.message && data.error.message.includes(err))
-      );
-      
-      if (shouldRetry && retryCount < MAX_RETRIES) {
-        const waitTime = Math.pow(2, retryCount + 1) * 1000; // 2초, 4초, 8초
-        console.log(`Gemini API 일시적 오류 (${data.error.message}). ${waitTime/1000}초 후 재시도... (${retryCount + 1}/${MAX_RETRIES})`);
-        notify(`⏳ 서버 과부하. ${waitTime/1000}초 후 재시도 중...`);
-        
-        await new Promise(resolve => setTimeout(resolve, waitTime));
-        return analyzeImageWithGemini(dataUrl, apiKey, retryCount + 1);
-      }
-      
-      throw new Error(`Gemini API 오류: ${data.error.message || data.error.status}`);
-    }
-    
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    
-    if (!text) {
-      throw new Error("Gemini API 응답이 없습니다");
-    }
-
-    console.log("Gemini 응답:", text);
-
-    // JSON 추출
-    let jsonText = text;
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      jsonText = jsonMatch[0];
-    }
-
-    const info = JSON.parse(jsonText);
-    
-    if (!info.subject || !info.title || !info.deadline) {
-      console.error("필수 정보 누락:", info);
-      return null;
-    }
-
-    // type이 없으면 기본값 설정
-    if (!info.type) {
-      info.type = "assignment";
-    }
-
-    return info;
-    
-  } catch (error) {
-    if (error instanceof SyntaxError) {
-      console.error("JSON 파싱 실패:", error);
-      return null;
-    }
-    throw error;
-  }
+  await chrome.offscreen.createDocument({
+    url: "offscreen.html",
+    reasons: ["DOM_SCRAPING"],
+    justification: "WebGPU LLM inference"
+  });
 }
 
 // OAuth를 통한 Google Calendar 이벤트 추가
