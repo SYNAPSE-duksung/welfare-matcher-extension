@@ -9,14 +9,12 @@
       width: 350px;
       box-sizing: border-box;
     }
-    input, button {
+    button {
       width: 100%;
       margin: 6px 0;
       font-size: 14px;
       padding: 8px;
       box-sizing: border-box;
-    }
-    button {
       cursor: pointer;
       background-color: #4285f4;
       color: white;
@@ -25,9 +23,6 @@
     }
     button:hover {
       background-color: #357ae8;
-    }
-    #deleteKey {
-      display: none;
     }
     .status {
       padding: 8px;
@@ -50,37 +45,28 @@
   </style>
 </head>
 <body>
-  <h3>📚 LMS Reminder 설정</h3>
-  
-  <!-- Gemini API 키 섹션 -->
-  <div id="keyControls">
-    <label for="apikey">🔑 Gemini API 키</label>
-    <input id="apikey" type="password" placeholder="Gemini API 키 입력" />
-    <button id="save">API 키 저장</button>
+  <h3>📚 LMS Reminder</h3>
+
+  <div id="status" class="status info">
+    LMS 페이지에서 <strong>Ctrl+Shift+Y</strong>를 눌러 캡처하세요.
   </div>
-  <button id="deleteKey">저장된 API 키 삭제</button>
-  
+
   <hr />
-  
-  <div id="authStatus" class="status info" style="display:none;"></div>
-  
-  <hr />
-  
+
   <!-- 사용법 -->
   <div style="margin-top: 15px; font-size: 12px; color: #666;">
     <strong>사용법:</strong><br />
-    1. Gemini API 키를 입력하고 저장<br />
-    2. LMS 페이지에서 <strong>Ctrl+Shift+Y</strong> 눌러 캡처<br />
-    3. Google 계정 로그인 (최초 1회)<br />
-    4. 자동으로 과제 정보가 캘린더에 등록됩니다<br /><br />
-    <strong>API 키 발급:</strong><br />
-    • <a href="https://aistudio.google.com/apikey" target="_blank">Gemini API 발급</a><br />
-    <br />
+    1. LMS 페이지에서 <strong>Ctrl+Shift+Y</strong> 눌러 캡처<br />
+    2. Google 계정 로그인 (최초 1회)<br />
+    3. 자동으로 과제 정보가 캘린더에 등록됩니다<br /><br />
+    <strong>⚠️ 참고:</strong><br />
+    최초 실행 시 AI 모델 로딩에 시간이 걸릴 수 있습니다.<br />
+    모델 크기: 약 2.7GB<br /><br />
     <strong>⚠️ 중요:</strong><br />
     OAuth 2.0 설정을 위해 Google Cloud Console에서<br />
     OAuth Client ID를 발급받아 manifest.json에 추가해야 합니다.
   </div>
-  
+
   <script src="popup.js"></script>
 </body>
 </html>
