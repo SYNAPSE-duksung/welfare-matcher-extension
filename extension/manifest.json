@@ -8,11 +8,13 @@
     "tabs",
     "storage",
     "identity",
-    "notifications"
+    "notifications",
+    "offscreen"
   ],
   "host_permissions": [
     "https://www.googleapis.com/*",
-    "https://generativelanguage.googleapis.com/*"
+    "https://cdn.jsdelivr.net/*",
+    "https://unpkg.com/*"
   ],
   "oauth2": {
     "client_id": "Google Cloud에서 발급받은 OAUTH client id 기입",
@@ -34,5 +36,9 @@
       },
       "description": "Capture visible tab and extract assignment info"
     }
-  }
+  },
+  "web_accessible_resources": [{
+    "resources": ["assets/*.litertlm", "offscreen.html", "offscreen.js"],
+    "matches": ["<all_urls>"]
+  }]
 }
