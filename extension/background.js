@@ -22,7 +22,7 @@ chrome.commands.onCommand.addListener(async (command) => {
       notify("스크린샷 캡처 중...");
 
       // 현재 활성 탭 캡처
-      chrome.tabs.captureVisibleTab(null, { format: "png" }, async (dataUrl) => {
+      chrome.tabs.captureVisibleTab(tab.windowId, { format: "png" }, async (dataUrl) => {
         if (chrome.runtime.lastError || !dataUrl) {
           console.error("캡처 실패:", chrome.runtime.lastError);
           notify("스크린샷 캡처에 실패했습니다");

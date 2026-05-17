@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "LMS Reminder",
-  "version": "1.0",
+  "version": "2.0",
   "description": "Press Ctrl+Shift+Y to capture and extract assignment info to Google Calendar.",
   "permissions": [
     "activeTab",
@@ -38,7 +38,10 @@
     }
   },
   "web_accessible_resources": [{
-    "resources": ["assets/*.litertlm", "offscreen.html", "offscreen.js"],
+    "resources": ["assets/*.litertlm", "offscreen.html", "offscreen.js", "vendor/*"],
     "matches": ["<all_urls>"]
-  }]
+  }],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+  }
 }
